@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="titlebar_bg">#1E8EFB</color>
+    <color name="splash_txt_bg">#44AEE2</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="shallow_gray">#B9C0B8</color>
+    <color name="controller_bg">#66000000</color>
+    <color name="menu_selected_color">#FDDE00</color>
+    <color name="menu_unselected_color">#ffffff</color>
+
+    <!-- 透明 -->
+    <color name="transgray">#33555555</color>
+    <color name="transparent">#00000000</color>
+    <color name="transparent2">#50000000</color>
+    <!--窗体颜色 -->
+    <color name="windows_color">#F5F5F5</color>
+    <color name="greeny">#00CB0D</color>
+    <color name="bar_color">#232325</color>
+    <color name="gray">#aaaaaa</color>
+    <color name="light_blue">#6593cb</color>
+
+    <!-- listview点击时背景颜色 -->
+    <color name="item_pressed">#c0c0c0</color>
+</resources>

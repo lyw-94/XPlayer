@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:background="@color/titlebar_bg"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/local"
+        style="@style/titlebar_menu"
+        android:text="@string/local_video"
+        android:textColor="@color/white" />
+
+    <TextView
+        android:id="@+id/web"
+        style="@style/titlebar_menu"
+        android:text="@string/web_video" />
+
+    <TextView
+        android:id="@+id/short_video"
+        style="@style/titlebar_menu"
+        android:text="@string/short_video" />
+
+    <TextView
+        android:id="@+id/file"
+        style="@style/titlebar_menu"
+        android:text="@string/file" />
+
+</LinearLayout>
