@@ -6,9 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
 
+import com.sdust.xplayer.config.ApplicationConfig;
 import com.sdust.xplayer.service.AssertService;
 import com.yixia.camera.VCamera;
 import com.yixia.camera.util.DeviceUtils;
+
+import org.xutils.x;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -30,22 +33,24 @@ public class XPlayerApplication extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
+        x.Ext.init(this);
         mContext = getApplicationContext();
 
         // 设置拍摄视频缓存路径
-        File dcim = Environment
-                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-        if (DeviceUtils.isZte()) {
-            if (dcim.exists()) {
-                VCamera.setVideoCachePath(dcim + "/xplayer/");
-            } else {
-                VCamera.setVideoCachePath(dcim.getPath().replace("/sdcard/",
-                        "/sdcard-ext/")
-                        + "/xplayer/");
-            }
-        } else {
-            VCamera.setVideoCachePath(dcim + "/xplayer/");
-        }
+//        File dcim = Environment
+//                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+//        if (DeviceUtils.isZte()) {
+//            if (dcim.exists()) {
+//                VCamera.setVideoCachePath(dcim + "/xplayer/");
+//            } else {
+//                VCamera.setVideoCachePath(dcim.getPath().replace("/sdcard/",
+//                        "/sdcard-ext/")
+//                        + "/xplayer/");
+//            }
+//        } else {
+//            VCamera.setVideoCachePath(dcim + "/xplayer/");
+//        }
+        VCamera.setVideoCachePath(ApplicationConfig.videoDir);
         // 开启log输出,ffmpeg输出到logcat
         VCamera.setDebugMode(true);
         // 初始化拍摄SDK，必须

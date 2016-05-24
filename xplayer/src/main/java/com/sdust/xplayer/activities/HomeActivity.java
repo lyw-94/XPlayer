@@ -92,7 +92,6 @@ public class HomeActivity extends FragmentActivity implements ViewPager.OnPageCh
 		mMenusList.add(mWeb);
 		mMenusList.add(mShortVideo);
 		mMenusList.add(mFile);
-
 	}
 
 	@Override

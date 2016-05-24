@@ -23,6 +23,7 @@ import com.sdust.xplayer.adapter.LocalVideoAdapter;
 import com.sdust.xplayer.entity.Video;
 import com.sdust.xplayer.helper.VideoHelper;
 import com.sdust.xplayer.utils.DialogUtils;
+import com.sdust.xplayer.utils.FileUtils;
 import com.sdust.xplayer.utils.StringUtils;
 import com.sdust.xplayer.utils.ToastUtils;
 
@@ -100,7 +101,6 @@ public class LocalVideoFragment extends Fragment implements
 										final EditText reName = (EditText) v.findViewById(R.id.rename_video);
 										reName.setText(video.name);
 										AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-//										AlertDialog dlg = builder.create();
 										builder.setTitle(getString(R.string.rename));
 										builder.setView(v);
 										builder.setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
@@ -108,9 +108,12 @@ public class LocalVideoFragment extends Fragment implements
 											public void onClick(DialogInterface dialog, int which) {
 												String newName = reName.getText().toString();
 												if (!newName.endsWith(".3gp") && !newName.endsWith(".mp4")) {
-													ToastUtils.showToast("命名不合规范");
+													ToastUtils.showToast("命名不合规范！");
+												} else if (FileUtils.isSameWithExistsFile(newName,
+														video.url.substring(0, video.url.lastIndexOf("/")))) {
+													ToastUtils.showToast("与已有文件冲突！");
 												} else if (!video.name.equals(newName) && VideoHelper.renameVideo(video, newName)) {
-													ToastUtils.showToast("重命名成功");
+													ToastUtils.showToast("重命名成功！");
 												}
 												dialog.dismiss();
 											}
@@ -161,8 +164,10 @@ public class LocalVideoFragment extends Fragment implements
 			if (mVideoList.size() == 0) {
 				mTvNoVideo.setVisibility(View.VISIBLE);
 			}
+			// 这里需要再开一个线程去加载视频的分辨率信息，因为该操作是耗时的
+			VideoHelper.GetVideoInfoTask getVideoInfoTask = new VideoHelper.GetVideoInfoTask();
+			getVideoInfoTask.execute(mVideoList);
 		}
 	}
-
 
 }

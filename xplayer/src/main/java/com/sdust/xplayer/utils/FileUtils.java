@@ -1,5 +1,9 @@
 package com.sdust.xplayer.utils;
 
+import android.text.TextUtils;
+
+import org.w3c.dom.Text;
+
 import java.io.File;
 
 /**
@@ -8,16 +12,6 @@ import java.io.File;
  * version : 1.0
  */
 public class FileUtils {
-
-    /**
-     * 删除文件
-     */
-    public static void deleteFile(String path) {
-        File file = new File(path);
-        if (file.isFile() && file.exists()) {
-            file.delete();
-        }
-    }
 
     /**
      * 删除目录
@@ -39,8 +33,8 @@ public class FileUtils {
     /**
      * 文件重命名
      *
-     * @param path
-     * @param newName
+     * @param path     文件绝对路径
+     * @param newName  新文件名
      */
     public static boolean renameFile(String path, String newName) {
         File oldFile = new File(path);
@@ -53,6 +47,66 @@ public class FileUtils {
             }
         }
 
+        return false;
+    }
+
+    /**
+     * 判断文件名是否与该文件父目录下的其它文件冲突
+     * @param fileName   文件名
+     * @param dir   文件父目录
+     * @return
+     */
+    public static boolean isSameWithExistsFile(String fileName, String dir) {
+        if (TextUtils.isEmpty(fileName)) {
+            return false;
+        }
+        File parent = new File(dir);
+        File[] files = parent.listFiles();
+        for (int i = 0; i < files.length; i++) {
+            if (files[i].getName().equals(fileName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    public static boolean deleteFile(File f) {
+        if (f != null && f.exists() && !f.isDirectory()) {
+            return f.delete();
+        }
+        return false;
+    }
+
+    public static boolean  deleteDir(File f) {
+        if (f != null && f.exists() && f.isDirectory()) {
+            for (File file : f.listFiles()) {
+                if (file.isDirectory()) {
+                    deleteDir(file);
+                }
+                file.delete();
+            }
+            f.delete();
+        }
+
+        return true;
+    }
+
+    public static boolean deleteDir(String f) {
+        if (f != null && f.length() > 0) {
+            if (deleteDir(new File(f))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean deleteFile(String f) {
+        if (f != null && f.length() > 0) {
+            return deleteFile(new File(f));
+        }
         return false;
     }
 }

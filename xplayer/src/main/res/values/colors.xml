@@ -25,5 +25,5 @@
     <color name="light_blue">#6593cb</color>
 
     <!-- listview点击时背景颜色 -->
-    <color name="item_pressed">#c0c0c0</color>
+    <color name="item_pressed">#c1ccc9</color>
 </resources>

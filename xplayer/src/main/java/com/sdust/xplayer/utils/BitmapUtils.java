@@ -1,8 +1,18 @@
 package com.sdust.xplayer.utils;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.media.MediaMetadataRetriever;
+import android.text.TextUtils;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 /**
@@ -39,30 +49,36 @@ public class BitmapUtils {
     }
 
     /**
-     * 获得视频缩略图
-     * @param filePath  视频路径
-     * @return  生成的缩略图
+     * 保存bitmap到本地  --> BitmapUtils
+     * @param bitmap 待保存的bitmap
+     * @return 图片路径
      */
-    public static Bitmap getVideoThumbnail(String filePath) {
-        Bitmap bitmap = null;
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        try {
-            retriever.setDataSource(filePath);
-            // 获得指定位置的帧
-            bitmap = retriever.getFrameAtTime(0);
-        } catch(IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-        } finally {
+    public static String saveBitmapToLocal(Context context, Bitmap bitmap, String path) {
+        if (bitmap == null || TextUtils.isEmpty(path)) {
+            return "";
+        }
+        File f = new File(path);
+        if (!f.exists()) {
             try {
-                retriever.release();
-            }
-            catch (RuntimeException e) {
+                f.createNewFile();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        return bitmap;
+        try {
+            OutputStream outStream = new FileOutputStream(f);
+            // 保存图片
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream);
+            outStream.flush();
+            outStream.close();
+            LogUtils.e("保存成功,保存目录时：" + f.getAbsolutePath());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return f.getAbsolutePath();
     }
 }

@@ -470,6 +470,16 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 	}
 
 	/**
+	 * 截取视频当前画面
+	 * 获取当前时刻视频对应的帧
+	 */
+	private void screenShots() {
+        MediaPlayer mp = new MediaPlayer(this);
+        mp.getCurrentFrame();
+        mVideoView.getVi
+	}
+
+	/**
 	 * 播放下一个视频
 	 */
 	public void playNextVideo() {

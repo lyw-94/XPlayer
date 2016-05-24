@@ -21,6 +21,7 @@ import com.sdust.xplayer.helper.ThemeHelper;
 import com.sdust.xplayer.service.AssertService;
 import com.sdust.xplayer.utils.ConvertToUtils;
 import com.sdust.xplayer.utils.IsUtils;
+import com.sdust.xplayer.utils.LogUtils;
 import com.sdust.xplayer.utils.ToastUtils;
 import com.sdust.xplayer.vcamera.CommonIntentExtra;
 import com.sdust.xplayer.vcamera.POThemeSingle;
@@ -499,8 +500,16 @@ public class MediaPreviewActivity extends BaseActivity implements
 	private void onEncodingEnd() {
 		hideProgress();
 		mStartEncoding = false;
+
 		startActivity(new Intent(this, ShortVideoPlayerActivity.class).putExtra(
-				"path", mVideoPath));
+				"path", mVideoPath).putExtra("entry", "previewActivity"));
+		// 删除临时生成的视频
+
+		String dir = mVideoPath.replace(".mp4", "");
+		LogUtils.e("合成视频的临时目录: " + dir);
+		if (FileUtils.deleteDir(dir)) {
+			LogUtils.e("删除视频合成临时文件夹成功");
+		}
 		finish();
 	}
 

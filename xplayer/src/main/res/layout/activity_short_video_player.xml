@@ -9,20 +9,22 @@
         android:id="@+id/txt_right"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:layout_margin="10dp"
         android:layout_alignParentRight="true"
         android:textColor="@color/white"
+        android:background="@drawable/shape_save"
         android:text="保存到本地"  />
 
     <TextView
-        android:id="@+id/txt_save_to_local"
+        android:id="@+id/commit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="20sp"
         android:layout_toLeftOf="@id/txt_right"
         android:layout_margin="10dp"
         android:textColor="@color/white"
+        android:background="@drawable/shape_save"
         android:text="上传"  />
     
     <com.sdust.xplayer.widget.SurfaceVideoView

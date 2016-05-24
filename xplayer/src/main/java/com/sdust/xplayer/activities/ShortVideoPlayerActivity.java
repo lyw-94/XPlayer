@@ -38,6 +38,8 @@ public class ShortVideoPlayerActivity extends BaseActivity implements
 	/** 暂停按钮 */
 	private View mPlayerStatus;
 	private View mLoading;
+	/** 保存到本地  */
+	private View mSaveToLocal;
 
 	/** 播放路径 */
 	private String mPath;
@@ -61,6 +63,7 @@ public class ShortVideoPlayerActivity extends BaseActivity implements
 		mVideoView = (SurfaceVideoView) findViewById(R.id.videoview);
 		mPlayerStatus = findViewById(R.id.play_status);
 		mLoading = findViewById(R.id.loading);
+		mSaveToLocal = findViewById(R.id.commit);
 
 		mVideoView.setOnPreparedListener(this);
 		mVideoView.setOnPlayStateListener(this);
@@ -72,7 +75,11 @@ public class ShortVideoPlayerActivity extends BaseActivity implements
 		mVideoView.getLayoutParams().height = DeviceUtils.getScreenWidth(this); // 设置videoview的高度为屏幕的高度？
 
 		findViewById(R.id.txt_right).setOnClickListener(this);
-		findViewById(R.id.txt_save_to_local).setOnClickListener(this);
+		findViewById(R.id.commit).setOnClickListener(this);
+		String entry = getIntent().getStringExtra("entry");
+		if ("shortVideoFragment".equals(entry)) {
+			mSaveToLocal.setVisibility(View.GONE);
+		}
 		mVideoView.setVideoPath(mPath);
 	}
 
@@ -157,11 +164,11 @@ public class ShortVideoPlayerActivity extends BaseActivity implements
 		int i = v.getId();
 		if (i == R.id.txt_right) {
 			Intent intent = new Intent("android.intent.action.newvideo");
-			//sendBroadcast(intent);
+			// 发送广播通知fragment更新数据
 			LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 			finish();
 			// ToastUtils.showLongToast("视频地址：" + mPath);
-		} else if (i == R.id.txt_save_to_local) {
+		} else if (i == R.id.commit) {
 			ToastUtils.showToast("未实现");
 		} else if (i == R.id.videoview) {
 			if (mVideoView.isPlaying())

@@ -523,7 +523,7 @@ public class MediaRecorderActivity extends BaseActivity implements
 
 		} else if (id == R.id.title_next) {
 			mMediaRecorder.startEncoding();
-			finish();
+			//finish();
 			overridePendingTransition(R.anim.push_bottom_in,
 					R.anim.push_bottom_out);
 
@@ -635,7 +635,7 @@ public class MediaRecorderActivity extends BaseActivity implements
 		intent.putExtras(bundle);
 		startActivity(intent);
 		mRebuild = false;
-		// finish();
+		finish();
 		// overridePendingTransition(R.anim.push_bottom_in,
 		// R.anim.push_bottom_out);
 	}

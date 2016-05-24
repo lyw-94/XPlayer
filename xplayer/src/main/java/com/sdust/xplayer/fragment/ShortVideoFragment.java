@@ -1,43 +1,49 @@
 package com.sdust.xplayer.fragment;
 
 
+import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.sdust.xplayer.R;
 import com.sdust.xplayer.activities.MediaRecorderActivity;
+import com.sdust.xplayer.activities.ShortVideoPlayerActivity;
 import com.sdust.xplayer.adapter.LocalVideoAdapter;
+import com.sdust.xplayer.config.ApplicationConfig;
 import com.sdust.xplayer.entity.Video;
 import com.sdust.xplayer.helper.VideoHelper;
 import com.sdust.xplayer.utils.DialogUtils;
+import com.sdust.xplayer.utils.FileUtils;
 import com.sdust.xplayer.utils.LogUtils;
+import com.sdust.xplayer.utils.StringUtils;
 import com.sdust.xplayer.utils.ToastUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 
+import javax.xml.datatype.Duration;
 
 public class ShortVideoFragment extends Fragment implements View.OnClickListener,
-        AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+        AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, View.OnTouchListener {
 
     private Context mContext;
 
@@ -93,35 +99,9 @@ public class ShortVideoFragment extends Fragment implements View.OnClickListener
 
         mListView.setOnItemClickListener(this);
         mListView.setOnItemLongClickListener(this);
-
-        mListView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                float startX = 0;
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        startX = event.getX();
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        if (event.getX() - startX > 0) {
-                            LogUtils.e("should hide");
-                        }
-                        if (event.getX() - startX < 0) {
-                            LogUtils.e("should show");
-                        }
-
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        //
-                        break;
-                    default:
-                        break;
-                }
-
-                return false;
-            }
-        });
         mTakeVideo.setOnClickListener(this);
+
+        mListView.setOnTouchListener(this);
     }
 
 
@@ -146,7 +126,11 @@ public class ShortVideoFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        VideoHelper.playVideo(mContext, position, mShortVideoList);
+        //VideoHelper.playVideo(mContext, position, mShortVideoList);
+        Intent intent = new Intent(mContext, ShortVideoPlayerActivity.class);
+        intent.putExtra("path", mShortVideoList.get(position).url);
+        intent.putExtra("entry", "shortVideoFragment");
+        mContext.startActivity(intent);
     }
 
     @Override
@@ -185,9 +169,12 @@ public class ShortVideoFragment extends Fragment implements View.OnClickListener
                                             public void onClick(DialogInterface dialog, int which) {
                                                 String newName = reName.getText().toString();
                                                 if (!newName.endsWith(".3gp") && !newName.endsWith(".mp4")) {
-                                                    ToastUtils.showToast("命名不合规范");
+                                                    ToastUtils.showToast("命名不合规范！");
+                                                } else if (FileUtils.isSameWithExistsFile(newName,
+                                                        video.url.substring(0, video.url.lastIndexOf("/")))) {
+                                                    ToastUtils.showToast("与已有文件冲突！");
                                                 } else if (!video.name.equals(newName) && VideoHelper.renameVideo(video, newName)) {
-                                                        ToastUtils.showToast("重命名成功");
+                                                    ToastUtils.showToast("重命名成功！");
                                                 }
                                                 dialog.dismiss();
                                             }
@@ -214,15 +201,8 @@ public class ShortVideoFragment extends Fragment implements View.OnClickListener
      * 得到目录下所有短视频
      */
     public void getShortVideos() {
-        File dcim = Environment
-                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
         File shortVideoDir;
-        if (dcim.exists()) {
-            shortVideoDir = new File(dcim + "/xplayer/");
-        } else {
-            shortVideoDir = new File(dcim.getPath().replace("/sdcard/",
-                    "/sdcard-ext/") + "/xplayer/");
-        }
+        shortVideoDir = new File(ApplicationConfig.videoDir);
 
         File[] files = shortVideoDir.listFiles();
         mShortVideoList.clear();
@@ -232,8 +212,110 @@ public class ShortVideoFragment extends Fragment implements View.OnClickListener
                 video.name = f.getName();
                 video.size = f.length();
                 video.url = f.getAbsolutePath();
+
                 mShortVideoList.add(video);
             }
         }
+        // 这里需要再开一个线程去加载视频的分辨率信息，因为该操作是耗时的
+        GetShortVideoInfoTask getVideoInfoTask = new GetShortVideoInfoTask();
+        getVideoInfoTask.execute(mShortVideoList);
+    }
+
+    class GetShortVideoInfoTask extends AsyncTask<ArrayList<Video>, Integer, Void> {
+
+        @Override
+        protected Void doInBackground(ArrayList<Video>... params) {
+            ArrayList<Video> list = params[0];
+
+            for (int i = 0; i < list.size(); i++) {
+                Video video = list.get(i);
+                video.resolutionH = Integer.parseInt(VideoHelper.getVideoHeight(video.url));
+                video.resolutionW = Integer.parseInt(VideoHelper.getVideoWidth(video.url));
+                if (video.duration == 0) {
+                    video.duration = Long.parseLong(VideoHelper.getVideoDuration(video.url));
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            for (int i = 0; i < mListView.getChildCount(); i++) {
+                View v = mListView.getChildAt(i);
+                TextView tv = (TextView) v.findViewById(R.id.txt_video_duration);
+                tv.setText(StringUtils.generateTime(mShortVideoList.get(i).duration));
+            }
+        }
+    }
+
+    float lastY = 0;
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                lastY = event.getY();
+                LogUtils.e("down:" + lastY);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                LogUtils.e("getY:" + event.getY() + "  lastY: " + lastY);
+                if (event.getY() - lastY > 5) {
+                    LogUtils.e("下滑");
+                    mListView.getLastVisiblePosition();
+                    mListView.getChildCount();
+                    addVideoImgAnimation(0);
+                } else if (event.getY() - lastY < -5) {
+                    LogUtils.e("上滑");
+                    addVideoImgAnimation(1);
+                }
+                lastY = event.getY();
+                break;
+            default:
+                break;
+        }
+
+        return false;
+    }
+
+
+    // 添加按钮是显示还是隐藏
+    private boolean isAppear = true;
+
+    /**
+     * 添加按钮动画效果
+     */
+    private void addVideoImgAnimation(int type) {
+//        if (!isDataFillOneScreen()) {   // 如果数据不满一屏，则屏蔽动画。
+//            return;
+//        }
+        ObjectAnimator objectAnimator = null;
+        if (type == 0 && !isAppear) {
+            objectAnimator = ObjectAnimator.ofFloat(mTakeVideo, "TranslationY", 0);
+            isAppear = true;
+            objectAnimator.setDuration(700);
+            objectAnimator.start();
+        }
+        if (type == 1 && isAppear) {
+            objectAnimator = ObjectAnimator.ofFloat(mTakeVideo, "TranslationY", 200);
+            isAppear = false;
+            objectAnimator.setDuration(700);
+            objectAnimator.start();
+        }
+    }
+
+    /**
+     * 判断listview的数据是否充满一屏幕
+     * @return
+     *      true:  充满一屏
+     *      false：未充满一屏
+     */
+    private boolean isDataFillOneScreen() {
+        if ((mListView.getFirstVisiblePosition() == 0)
+                && (mListView.getLastVisiblePosition() == mListView.getChildCount() - 1) ) {
+            return false;
+        }
+
+        return true;
     }
 }
