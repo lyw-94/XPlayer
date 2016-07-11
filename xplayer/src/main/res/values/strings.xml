@@ -23,4 +23,13 @@
     <string name="resolution">分辨率</string>
     <string name="no_video">暂无视频</string>
     <string name="push_video">上传</string>
+    <string name="video_setting">播放器设置</string>
+    <string name="video_play_speed">播放速度: 1.0倍</string>
+    <string name="_default">默认</string>
+    <string name="circulate_play">循环播放当前视频</string>
+    <string name="video_quality">画质:</string>
+    <string name="flex">流畅</string>
+    <string name="normal">普通</string>
+    <string name="high">高清</string>
+
 </resources>

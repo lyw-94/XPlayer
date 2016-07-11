@@ -7,9 +7,10 @@
 
     <io.vov.vitamio.widget.VideoView
         android:id="@+id/videoview_vitamio"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_centerVertical="true"
+		android:layout_centerHorizontal="true"
         />
 
 	 <RelativeLayout
@@ -41,7 +42,7 @@
 	    android:layout_height="wrap_content"
 	    android:layout_centerInParent="true"
 	    android:textColor="@color/white"
-	    android:textSize="30sp"
+	    android:textSize="40sp"
 	    android:visibility="gone" 
 	    />
     <FrameLayout
@@ -87,17 +88,17 @@
     <include 
         android:id="@+id/layout_controller"
         layout="@layout/videoplayer_controller" />
-    
-    <CheckBox
-        android:id="@+id/cb_lock_screen"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:layout_centerVertical="true"
-		android:layout_marginLeft="3dp"
-        android:background="@drawable/cb_lock_selector"
-        android:button="@null"
+
+    <ImageView
+        android:id="@+id/img_unlock_screen"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+		android:layout_marginLeft="10dp"
+		android:layout_marginTop="15dp"
+        android:src="@drawable/lock"
+		android:visibility="gone"
         />
-     
+
 	 <RelativeLayout
 	     android:id="@+id/layout_loading"
 	     android:layout_width="match_parent"

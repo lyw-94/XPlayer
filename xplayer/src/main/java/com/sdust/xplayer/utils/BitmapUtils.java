@@ -81,4 +81,41 @@ public class BitmapUtils {
 
         return f.getAbsolutePath();
     }
+
+    /**
+     * 保存bitmap到本地  根据一定规则生成文件名
+     * @param context 上下文对象
+     * @param bitmap 待保存的bitmap
+     * @param dirName  文件夹路径
+     */
+    public static String saveBitmapWithUniqueName(Context context, Bitmap bitmap, String dirName) {
+        if (bitmap == null || TextUtils.isEmpty(dirName)) {
+            return null;
+        }
+
+        File dir = new File(dirName);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        // 随机生成图片名
+        SimpleDateFormat format = new SimpleDateFormat("yyymmddhhmmss");
+        String fileName = format.format(new Date()) + ".jpg";
+
+        File file = new File(dirName, fileName);
+        try {
+            OutputStream outStream = new FileOutputStream(file);
+            // 保存图片
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream);
+            outStream.flush();
+            outStream.close();
+            FileUtils.refreshGallery(context, file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return file.getAbsolutePath();
+    }
 }

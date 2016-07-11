@@ -3,12 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-    <ListView 
-        android:id="@+id/listview_local_video"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:listSelector="@drawable/list_item_bg"
-        />
+
+	<android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/local_video_refresh"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:layout_centerInParent="true"
+		>
+		<ListView
+			android:id="@+id/listview_local_video"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:listSelector="@drawable/list_item_bg"
+			android:scrollbars="none"
+			/>
+	</android.support.v4.widget.SwipeRefreshLayout>
 	<ProgressBar 
 	    android:id="@+id/progressbar"
 	    android:layout_width="wrap_content"

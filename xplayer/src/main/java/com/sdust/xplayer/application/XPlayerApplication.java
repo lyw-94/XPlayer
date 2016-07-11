@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Environment;
 
 import com.sdust.xplayer.config.ApplicationConfig;
 import com.sdust.xplayer.service.AssertService;
+import com.sdust.xplayer.utils.LogUtils;
+import com.sdust.xplayer.utils.SharedPreferenceUtils;
 import com.yixia.camera.VCamera;
 import com.yixia.camera.util.DeviceUtils;
 
@@ -58,6 +61,9 @@ public class XPlayerApplication extends Application{
 
         // 解压assert里面的文件
         startService(new Intent(this, AssertService.class));
+
+        // 初始化配置文件
+        initSettings();
     }
 
     // 运用list来保存们每一个activity是关键
@@ -89,6 +95,28 @@ public class XPlayerApplication extends Application{
             e.printStackTrace();
         } finally {
             System.exit(0);
+        }
+    }
+
+    /**
+     * 第一次进入应用时初始化默认配置
+     */
+    public void initSettings() {
+        // 是否是第一次进入应用
+        boolean isEnterAppFirst = SharedPreferenceUtils.getBooleanValue("enter_first", true);
+
+        if (isEnterAppFirst) {
+            SharedPreferenceUtils.putIntValues("video_quantity",  1);  //普通
+            SharedPreferenceUtils.putIntValues("buffer_size",  1);  // 512K
+            SharedPreferenceUtils.putIntValues("video_aspectratio",  0);  // 自动检测
+            SharedPreferenceUtils.putBoolValues("display_subtitle",  true); // 加载同名字幕
+            SharedPreferenceUtils.putBoolValues("auto_play",  true);    // 自动播放下一个
+            SharedPreferenceUtils.putBoolValues("file_buffer",  false); // 不缓存视频到sd卡
+
+            LogUtils.e("第一次进入应用");
+            SharedPreferenceUtils.putBoolValues("enter_first", false);
+        } else {
+            LogUtils.e("不是第一次进入应用");
         }
     }
 }

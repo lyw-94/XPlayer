@@ -2,6 +2,8 @@ package com.sdust.xplayer.config;
 
 import android.os.Environment;
 
+import io.vov.vitamio.MediaPlayer;
+
 /**
  * 应用的一些配置信息
  * Created by Liu Yongwei on 2016/5/8.
@@ -27,4 +29,12 @@ public class ApplicationConfig {
 
     /** 应用缓存目录  */
     public static final String cacheDir = appDir + "/cache/";
+
+    public static final String screenShotsDir = appDir + "/screenShots/";
+
+    public static final int[] bufferSize = {0, 512 * 1024, 1 * 1024 * 1024, 4 * 1024 * 1024, 8 * 1024 * 1024}; // 单位 kb
+
+    public static final int[] videoQuality = {MediaPlayer.VIDEOQUALITY_LOW, MediaPlayer.VIDEOQUALITY_MEDIUM, MediaPlayer.VIDEOQUALITY_HIGH };
+
+    public static final float[] videoAspectratio = {0, 1, 4/3.0f, 3/2.0f, 14/9.0f, 16/9.0f};
 }

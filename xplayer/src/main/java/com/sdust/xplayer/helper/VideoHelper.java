@@ -192,6 +192,9 @@ public class VideoHelper {
         if (TextUtils.isEmpty(path)) {
             return "";
         }
+        if (!(new File(path).exists())) {
+            return "";
+        }
         mediaMetadataRetriever.setDataSource(path);
         return mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
     }

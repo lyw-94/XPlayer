@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:gravity="center_vertical"
+        >
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/back_gray"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:text="播放器设置"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+
+        <RelativeLayout
+            android:id="@+id/layout_video_quantity"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/selector_bg"
+            android:clickable="true"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/video_quantity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="画质"
+                android:textColor="@color/txt_color"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/set_video_quantity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/video_quantity"
+                android:layout_marginTop="3dp"
+                android:text="设置播放器画质"
+                android:textSize="15sp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray" />
+
+        <RelativeLayout
+            android:id="@+id/layout_buffer_size"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/selector_bg"
+            android:clickable="true"
+            android:visibility="gone"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/video_buffersize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="缓冲大小"
+                android:textColor="@color/txt_color"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/video_buffersize"
+                android:layout_marginTop="3dp"
+                android:text="打开视频时默认的缓冲大小"
+                android:textSize="15sp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray" />
+
+        <RelativeLayout
+            android:id="@+id/layout_video_aspectRatio"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/selector_bg"
+            android:clickable="true"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/video_aspectRatio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="长宽比"
+                android:textColor="@color/txt_color"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/video_aspectRatio"
+                android:layout_marginTop="3dp"
+                android:text="设置默认的视频画面比例"
+                android:textSize="15sp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray" />
+        <RelativeLayout
+            android:id="@+id/layout_fliter_size"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/selector_bg"
+            android:clickable="true"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_fliter_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="过滤视频大小"
+                android:textColor="@color/txt_color"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tv_fliter_size"
+                android:layout_marginTop="3dp"
+                android:text="小于该大小的视频将不被显示"
+                android:textSize="15sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                >
+                <EditText
+                    android:id="@+id/filter_size"
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/tv_fliter_size"
+                    android:layout_toLeftOf="@+id/mb"
+                    android:text="3"
+                    android:enabled="false"
+                    />
+                <TextView
+                    android:id="@+id/mb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MB"
+                    />
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray" />
+
+        <RelativeLayout
+            android:id="@+id/layout_auto_play_next_video"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/selector_bg"
+            android:clickable="true"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/auto_play_next_video"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="自动播放下一集"
+                android:textColor="@color/txt_color"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/auto_play_next_video"
+                android:layout_marginTop="3dp"
+                android:text="自动播放视频列表的下一个视频"
+                android:textSize="15sp" />
+
+            <CheckBox
+                android:id="@+id/cb_auto_play_next_video"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="10dp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray" />
+
+        <RelativeLayout
+            android:id="@+id/layout_file_buffer"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/selector_bg"
+            android:clickable="true"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/file_buffer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="硬解码"
+                android:textColor="@color/txt_color"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/file_buffer"
+                android:layout_marginTop="3dp"
+                android:text="是否有限开启硬解码"
+                android:textSize="15sp" />
+
+            <CheckBox
+                android:id="@+id/cb_buffer_online_video"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="10dp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray" />
+
+        <RelativeLayout
+            android:id="@+id/layout_display_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/selector_bg"
+            android:clickable="true"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/display_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="显示字幕"
+                android:textColor="@color/txt_color"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/display_subtitle"
+                android:layout_marginTop="3dp"
+                android:text="是否自动加载同名字幕"
+                android:textSize="15sp" />
+
+            <CheckBox
+                android:id="@+id/cb_auto_display_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="10dp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -64,9 +64,18 @@
             android:name=".activities.ShortVideoPlayerActivity"
             android:screenOrientation="portrait"
             android:theme="@style/CameraTheme"/>
+        <activity
+            android:name=".activities.AppInfoActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:screenOrientation="portrait"
+            />
+        <activity
+            android:name=".activities.PlayerSettingActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:screenOrientation="portrait"
+            />
 
         <service android:name=".service.AssertService" />
-
     </application>
 
 </manifest>

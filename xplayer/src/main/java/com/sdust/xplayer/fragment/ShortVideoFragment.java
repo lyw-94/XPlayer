@@ -149,7 +149,10 @@ public class ShortVideoFragment extends Fragment implements View.OnClickListener
                             public void onClick(DialogInterface dialog, int which) {
                                 switch (which) {
                                     case 0:
-                                        VideoHelper.playVideo(mContext, position, mShortVideoList);
+                                        Intent intent = new Intent(mContext, ShortVideoPlayerActivity.class);
+                                        intent.putExtra("path", mShortVideoList.get(position).url);
+                                        intent.putExtra("entry", "shortVideoFragment");
+                                        mContext.startActivity(intent);
                                         break;
                                     case 1:
                                         mShortVideoList.remove(video);
@@ -168,13 +171,19 @@ public class ShortVideoFragment extends Fragment implements View.OnClickListener
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 String newName = reName.getText().toString();
-                                                if (!newName.endsWith(".3gp") && !newName.endsWith(".mp4")) {
+                                                if (!newName.endsWith(".3gp") && !newName.endsWith(".mp4") && !newName.endsWith(".mkv") && !newName.endsWith(".rmvb")) {
                                                     ToastUtils.showToast("命名不合规范！");
+                                                } else if (video.url.equals(newName)) {
+                                                    // 没有改变名字
                                                 } else if (FileUtils.isSameWithExistsFile(newName,
                                                         video.url.substring(0, video.url.lastIndexOf("/")))) {
                                                     ToastUtils.showToast("与已有文件冲突！");
                                                 } else if (!video.name.equals(newName) && VideoHelper.renameVideo(video, newName)) {
                                                     ToastUtils.showToast("重命名成功！");
+                                                    int firstvisibleposition = mListView.getFirstVisiblePosition();
+                                                    View v = mListView.getChildAt(position - firstvisibleposition);
+                                                    TextView tv = (TextView) v.findViewById(R.id.txt_video_title);
+                                                    tv.setText(newName);
                                                 }
                                                 dialog.dismiss();
                                             }

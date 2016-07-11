@@ -21,9 +21,10 @@
     <color name="windows_color">#F5F5F5</color>
     <color name="greeny">#00CB0D</color>
     <color name="bar_color">#232325</color>
-    <color name="gray">#aaaaaa</color>
+    <color name="gray">#c0c0c0</color>
     <color name="light_blue">#6593cb</color>
 
+    <color name="txt_color">#2e2e2e</color>
     <!-- listview点击时背景颜色 -->
-    <color name="item_pressed">#c1ccc9</color>
+    <color name="item_pressed">#c0c0c0</color>
 </resources>

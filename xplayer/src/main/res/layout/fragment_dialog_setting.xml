@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/video_setting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/video_setting"
+        android:textColor="@color/white" />
+
+    <LinearLayout
+        android:id="@+id/layout_video_quality"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/video_setting"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="@string/video_quality"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+
+        <RadioGroup
+            android:id="@+id/video_quality"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/flex"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:text="@string/flex"
+                android:textColor="@color/white" />
+
+            <RadioButton
+                android:id="@+id/normal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="@string/normal"
+                android:checked="true"
+                android:textColor="@color/white" />
+
+            <RadioButton
+                android:id="@+id/high"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="@string/high"
+                android:textColor="@color/white" />
+        </RadioGroup>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_play_speed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout_video_quality"
+        android:layout_marginTop="10dp"
+        tools:text="@string/video_play_speed"
+        android:textColor="@color/white" />
+
+    <SeekBar
+        android:id="@+id/play_speed"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_play_speed"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:max="20"
+        android:progress="5"
+        />
+
+    <CheckBox
+        android:id="@+id/play_recycle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/play_speed"
+        android:layout_marginTop="10dp"
+        android:text="循环播放当前视频"
+        android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/confirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/play_recycle"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/shape_save"
+        android:text="确定"
+        android:textColor="@color/white" />
+
+</RelativeLayout>

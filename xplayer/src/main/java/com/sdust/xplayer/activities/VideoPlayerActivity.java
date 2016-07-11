@@ -7,8 +7,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -25,12 +29,17 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.sdust.xplayer.R;
+import com.sdust.xplayer.config.ApplicationConfig;
 import com.sdust.xplayer.entity.Video;
+import com.sdust.xplayer.fragment.SettingDialogFragment;
+import com.sdust.xplayer.utils.BitmapUtils;
+import com.sdust.xplayer.utils.LogUtils;
+import com.sdust.xplayer.utils.SharedPreferenceUtils;
 import com.sdust.xplayer.utils.StringUtils;
 import com.sdust.xplayer.utils.SystemUtils;
+import com.sdust.xplayer.utils.ToastUtils;
 
 import java.util.List;
 
@@ -43,7 +52,7 @@ import io.vov.vitamio.widget.VideoView;
 
 
 public class VideoPlayerActivity extends Activity implements OnClickListener,
-		OnCheckedChangeListener {
+		OnCheckedChangeListener, View.OnTouchListener, OnSeekBarChangeListener, SettingDialogFragment.OnSettingCompleteListener {
 
 	/** 更新进度、系统时间 */
 	private final int PROGRESS = 0;
@@ -52,6 +61,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 	/** 隐藏控制栏 */
 	private final int HIDECONTROLLER = 2;
 
+	private MediaPlayer mMediaPlayer;
 	private VideoView mVideoView;
 	/** 视频名称 */
 	private TextView mTvVideoName;
@@ -74,9 +84,9 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 	/** 播放/暂停 */
 	private CheckBox mCbPlayVideo;
 	/** 全屏/退出全屏 */
-	private CheckBox mCbFullScreen;
+	private ImageView mImgVideoLayout;
 	/** 锁定屏幕 */
-	private CheckBox mCbLockScreen;
+	private ImageView mImgLockScreen;
 	/** 返回 */
 	private ImageView mImgBack;
 	/** 截屏  */
@@ -87,7 +97,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 	private RelativeLayout mLayoutLoading;
 	/** 缓冲加载中 */
 	private RelativeLayout mLayoutBuffing;
-	
+    /** 锁定屏幕后显示的解锁图标 */
+	private ImageView mUnLockScreen;
+	/** 设置 */
+	private ImageView mImgSetting;
+	/** 打开/关闭字幕 */
+	private CheckBox  mCbSubtitle;
+
 	/** 音量/亮度调节框 */
 	private View mVolumeBrightnessLayout;
 	/** 音量/亮度 */
@@ -105,6 +121,8 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 	private Video mVideo;
 	/** 当前视频的uri */
 	private Uri mUri;
+	/** 当前视频的路径-网络路径 */
+	private String mPath;
 	/** 视频列表 */
 	private List<Video> mVideoList;
 	/** 当前视频在视频列表中的位置 */
@@ -130,7 +148,29 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 	private boolean mIsWebVideo;
 	/** 是否处于锁屏状态 */
 	private boolean mIsLocking;
-	
+    /** 视频当前位置 */
+	private long mCurrentPosition;
+    /** 设备当前音量 */
+    private int  mCurrentVolume;
+
+	// 程序配置项
+	/** 画质 */
+	private int videoQuality;
+	/** 缓冲大小 */
+	private int bufferSize;
+	/** 是否自动播放 */
+	private boolean autoPlay;
+	/** 缓存在线视频到sd卡 */
+	private boolean bufferVideo;
+	/** 显示字幕 */
+	private boolean displaySubtitle;
+	/** 视频画面比例 */
+	private float videoAspectRatio;
+	/** 视频播放速度 */
+	private float videoSpeed;
+	/** 是否循环播放当前视频 */
+	private boolean isPlayCycle;
+
 	/**
 	 * true:视频卡了但是没有把卡的效果(进度条)消除
 	 * false:卡了但是卡效果已消除   
@@ -180,11 +220,13 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 
 	protected void onCreate(android.os.Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+        LogUtils.e("onCreate被调用");
 		if (!LibsChecker.checkVitamioLibs(this))
 			return;
 		initView();
 		getData();
 		setData();
+		initSettings();
 		setListener();
 	};
 
@@ -207,8 +249,12 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 		mCbPlayVideo = (CheckBox) findViewById(R.id.cb_play);
 		mImgBack = (ImageView) findViewById(R.id.img_back);
 		mImgCut = (ImageView) findViewById(R.id.img_cut);
-		mCbFullScreen = (CheckBox) findViewById(R.id.cb_fullscreen);
-		mCbLockScreen = (CheckBox) findViewById(R.id.cb_lock_screen);
+		mImgSetting = (ImageView) findViewById(R.id.img_setting_controller);
+		mCbSubtitle = (CheckBox) findViewById(R.id.cb_subtitle_setting);
+
+		mImgVideoLayout = (ImageView) findViewById(R.id.img_video_layout);
+        mImgLockScreen = (ImageView) findViewById(R.id.controller_lock_screen);
+        mUnLockScreen = (ImageView) findViewById(R.id.img_unlock_screen);
 		mLayoutController = (RelativeLayout) findViewById(R.id.layout_controller);
 		mLayoutLoading = (RelativeLayout) findViewById(R.id.layout_loading);
 		mLayoutBuffing = (RelativeLayout) findViewById(R.id.layout_buffing);
@@ -216,7 +262,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 		mOperationBg = (ImageView) findViewById(R.id.operation_bg);
 		mOperationPercent = (ImageView) findViewById(R.id.operation_percent);
 		mOperationFull = (ImageView) findViewById(R.id.operation_full);
-	}
+    }
 
 	/**
 	 * 得到页面传递过来的数据
@@ -233,6 +279,7 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 		}
 		// 得到视频地址---用于播放来自第三方软件的视频 如文件管理器、浏览器等
 		mUri = intent.getData();
+		mPath = intent.getStringExtra("path");
 	}
 
 	/**
@@ -247,53 +294,106 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 		} else if (mUri != null) { // 来自第三方软件
 			mVideoView.setVideoURI(mUri);
 			mTvVideoName.setText(mUri.toString());
+		} else if (!TextUtils.isEmpty(mPath)) {  // 网络路径
+			mVideoView.setVideoPath(mPath);
 		}
+//		mVideoView.setVideoPath(getIntent().getStringExtra("path"));
+//		LogUtils.e(getIntent().getStringExtra("path"));
 		initBattery();
 		// 最大音量
 		mMaxVolume = SystemUtils.getMaxVolume(this);
 		mGestDetector = new GestureDetector(this, new SingleGestureListener());
 	}
 
-	/**
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        LogUtils.e("onRestoreInstanceState被调用");
+        if (savedInstanceState != null) {
+            mCurrentPosition = savedInstanceState.getLong("position");
+            if (mVideoView != null) {
+                mVideoView.seekTo(mCurrentPosition);
+            }
+            LogUtils.e("恢复视频当前位置：" + mCurrentPosition);
+        }
+    }
+
+    /**
 	 * 设置监听器
 	 */
 	private void setListener() {
+
+		mImgVideoLayout.setOnClickListener(this);
+		mCbPlayVideo.setOnCheckedChangeListener(this);
+        mImgLockScreen.setOnClickListener(this);
+		mImgNextVideo.setOnClickListener(this);
+		mImgPreVideo.setOnClickListener(this);
+		mImgBack.setOnClickListener(this);
+		mImgCut.setOnClickListener(this);
+        mUnLockScreen.setOnClickListener(this);
+		mImgSetting.setOnClickListener(this);
+		mCbSubtitle.setOnCheckedChangeListener(this);
+		mSbVideoProgress.setOnSeekBarChangeListener(this);
+
 		// 准备视频监听
 		mVideoView.setOnPreparedListener(new OnPreparedListener() {
 
 			@Override
 			public void onPrepared(MediaPlayer mp) {
-				// 开始播放
-				//mVideoView.start();
+				mMediaPlayer = mp;
 				mLayoutLoading.setVisibility(View.GONE);
 				// 设置播放速度
 				mp.setPlaybackSpeed(1.0f);
-				mCbPlayVideo.setChecked(false);
-//				mIsPlaying = true;
+				LogUtils.e("视频播放速度：" + 1.0f);
+
+				// 设置视频质量
+				mp.setVideoQuality(videoQuality);
+
+				// 设置视频缓冲大小（默认1024KB）单位Byte
+				mp.setUseCache(true);
+				mp.setCacheDirectory("sdcard/xplayer/cache");
+				mp.setBufferSize(bufferSize);
+
+				mVideoView.setVideoLayout(VideoView.VIDEO_LAYOUT_ORIGIN, videoAspectRatio);
+
+                mCbPlayVideo.setChecked(false);
+				mIsPlaying = true;
+
 				// 视频时长与进度条关联
 				mSbVideoProgress.setMax((int) mVideoView.getDuration());
+
 				// 默认隐藏控制栏
 				hideController();
-				
 				handler.sendEmptyMessage(PROGRESS);
 			}
 		});
+
 		// 视频播放完成监听
 		mVideoView.setOnCompletionListener(new OnCompletionListener() {
 
 			@Override
 			public void onCompletion(MediaPlayer mp) {
-				playNextVideo();
+				if (isPlayCycle) {   // 循环播放
+					LogUtils.e("当前视频循环播放");
+					mVideoView.seekTo(0);
+//					mSbVideoProgress.setProgress(0);
+				} else if (autoPlay) {		// 自动播放下一个
+					playNextVideo();
+				}
+
 				if (mVideoList != null && (mCurVideoPosition == mVideoList.size())) {
-					// 若是最后一个视频，则直接关闭当前界面
-					mCurVideoPosition--;
+					mCurVideoPosition--;	// 若是最后一个视频，则直接关闭当前界面
 					finish();
 				}
 				if (mUri != null) {  //如果是来自第三方软件的视频，那么播放结束时关掉页面
 					finish();
 				}
+				if (!TextUtils.isEmpty(mPath)) {  // 如果播放的是网络视频，那么播放结束直接关掉页面
+					finish();
+				}
 			}
-		}); 
+		});
+
 		// 播放出错监听
 		mVideoView.setOnErrorListener(new OnErrorListener() {
 			
@@ -303,16 +403,17 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 					.setTitle("提示")
 					.setMessage(getString(R.string.canot_play))
 					.setNegativeButton("确定", new DialogInterface.OnClickListener() {
-						
+
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
 							finish();
 						}
 					}).create().show();
-					
+				LogUtils.e("出错了");
 				return true;
 			}
 		});
+
 		// 播放卡顿监听
 		// TODO:  加上下面的代码导致视频第一次播放时不显示画面
 //		mVideoView.setOnInfoListener(new OnInfoListener() {
@@ -345,44 +446,24 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 //				}
 //			}
 //		});
-		mSbVideoProgress
-				.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+	}
 
-					@Override
-					public void onStopTrackingTouch(SeekBar seekBar) {
-						mTvToast.setVisibility(View.GONE);
-						// 发送消息
-						handler.sendEmptyMessageDelayed(HIDECONTROLLER, 5000);
-					}
-
-					@Override
-					public void onStartTrackingTouch(SeekBar seekBar) {
-						// 显示当前位置
-						mTvToast.setVisibility(View.VISIBLE);
-						// 移除消息
-						handler.removeMessages(HIDECONTROLLER);
-					}
-					
-					/**
-					 * SeekBar状态改变时调用这个方法 progress和视频长度一一对应
-					 */
-					@Override
-					public void onProgressChanged(SeekBar seekBar,
-							int progress, boolean fromUser) {
-						if (fromUser) {
-							int currentPosition = seekBar.getProgress();
-							mTvToast.setText(StringUtils.generateTime(currentPosition));
-							mVideoView.seekTo(progress);
-						}
-					}
-				});
-		mCbFullScreen.setOnCheckedChangeListener(this);
-		mCbPlayVideo.setOnCheckedChangeListener(this);
-		mCbLockScreen.setOnCheckedChangeListener(this);
-		mImgNextVideo.setOnClickListener(this);
-		mImgPreVideo.setOnClickListener(this);
-		mImgBack.setOnClickListener(this);
-		mImgCut.setOnClickListener(this);
+	/**
+	 * 读取程序配置
+	 */
+	private void initSettings() {
+		videoQuality = ApplicationConfig.videoQuality[SharedPreferenceUtils.getIntValues("video_quantity")];
+		bufferSize = ApplicationConfig.bufferSize[SharedPreferenceUtils.getIntValues("buffer_size")];
+		autoPlay = SharedPreferenceUtils.getBooleanValue("auto_play");
+		bufferVideo = SharedPreferenceUtils.getBooleanValue("file_buffer");
+		displaySubtitle = SharedPreferenceUtils.getBooleanValue("display_subtitle");
+		videoAspectRatio =  ApplicationConfig.videoAspectratio[SharedPreferenceUtils.getIntValues("video_aspectratio")];
+		LogUtils.e("画质：" + videoQuality);
+		LogUtils.e("缓冲大小：" + bufferSize);
+		LogUtils.e("是否自动播放：" + autoPlay);
+		LogUtils.e("是否缓存视频到sd卡：" + bufferVideo);
+		LogUtils.e("是否自动加载字幕：" + displaySubtitle);
+		LogUtils.e("画面比例:" + videoAspectRatio);
 	}
 
 	/**
@@ -395,6 +476,44 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 		registerReceiver(mBatteryBroadcastReceiver, filter);
 	}
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        return false;
+    }
+
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {  //seekbar正在拖动
+		if (fromUser) {
+			int currentPosition = seekBar.getProgress();
+			mTvToast.setText(StringUtils.generateTime(currentPosition));
+		}
+	}
+
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {  //seekbar开始拖动
+		// 显示当前位置
+		mTvToast.setVisibility(View.VISIBLE);
+		// 移除消息
+		handler.removeMessages(HIDECONTROLLER);
+		// 记录拖动钱声音
+		mCurrentVolume = SystemUtils.getCurVolume(VideoPlayerActivity.this);
+		// 拖动时屏蔽声音
+		SystemUtils.setCurVolume(VideoPlayerActivity.this, 0);
+	}
+
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {  //seekbar停止拖动
+		mTvToast.setVisibility(View.GONE);
+		// 发送消息
+		handler.sendEmptyMessageDelayed(HIDECONTROLLER, 5000);
+		mVideoView.seekTo(seekBar.getProgress());
+		mCbPlayVideo.setChecked(false);  // true zanting  false bofang
+		SystemUtils.setCurVolume(VideoPlayerActivity.this, mCurrentVolume);
+	}
+
+	/**
+	 * 电量变化的广播接收者
+	 */
 	private class BatteryBroadcastReceiver extends BroadcastReceiver {
 
 		@Override
@@ -425,14 +544,32 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 		}
 	};
 
-	@Override
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mCurrentPosition != 0) {
+            mVideoView.seekTo(mCurrentPosition);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LogUtils.e("onPause被调用");
+        mCurrentPosition = mVideoView.getCurrentPosition();
+    }
+
+    @Override
 	protected void onDestroy() {
 		super.onDestroy();
+        LogUtils.e("ondestroy调用");
 		mIsDestroyed = true;
 		// 取消广播接收者
 		unregisterReceiver(mBatteryBroadcastReceiver);
 		mBatteryBroadcastReceiver = null;
 	}
+
+	private int videoAspectratioId;
 
 	@Override
 	public void onClick(View v) {
@@ -440,78 +577,149 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 		case R.id.img_back:
 			finish();
 			break;
-		case R.id.img_cut:
-			// 截屏
-			Toast.makeText(this, "裁剪", Toast.LENGTH_SHORT).show();
+		case R.id.img_cut:   // 截屏
+			screenShots();
 			break;
-		case R.id.img_pre:
-			// 播放上一个
+		case R.id.img_pre:  // 播放上一个
 			playPreVideo();
 			if (mCurVideoPosition < 0) {  // 如果已经是第一个视频
-				Toast.makeText(VideoPlayerActivity.this,
-						getString(R.string.first_video), Toast.LENGTH_SHORT)
-						.show();
+				ToastUtils.showToast(getString(R.string.first_video));
 				mCurVideoPosition++;
 			}
 			break;
-		case R.id.img_next:
-			// 播放下一个
+		case R.id.img_next: // 播放下一个
 			playNextVideo();
 			if (mVideoList != null && (mCurVideoPosition == mVideoList.size())) { // 如果已经是最后一个视频
-				Toast.makeText(VideoPlayerActivity.this,
-						getString(R.string.last_video), Toast.LENGTH_SHORT)
-						.show();
+                ToastUtils.showToast(getString(R.string.last_video));
 				mCurVideoPosition--;
 			}
+			break;
+		case R.id.img_video_layout:		// 画面比例
+			changeVideoLayout();
+			break;
+        case R.id.controller_lock_screen:   // 锁频
+            lockOrUnlockScreen(true);
+            break;
+        case R.id.img_unlock_screen:    // 解锁
+            lockOrUnlockScreen(false);
+            break;
+		case R.id.img_setting_controller:  // 设置
+			dialogFragment  = new SettingDialogFragment();
+			dialogFragment.setOnSettingCompleteListener(this);
+			dialogFragment.setCancelable(false);
+			dialogFragment.show(getFragmentManager(), "dialog");
 			break;
 		default:
 			break;
 		}
 	}
 
-	/**
-	 * 截取视频当前画面
-	 * 获取当前时刻视频对应的帧
-	 */
-	private void screenShots() {
-        MediaPlayer mp = new MediaPlayer(this);
-        mp.getCurrentFrame();
-        mVideoView.getVi
+	@Override
+	public void onConfirm(int videoQuality, float videoSpeed, boolean isCycle) {
+		LogUtils.e("画质：" + videoQuality + "播放速度：" + videoSpeed + "是否循环播放：" + isCycle);
+		this.videoQuality = videoQuality;  // 视频质量
+		this.videoSpeed = videoSpeed;  // 播放速度
+		this.isPlayCycle = isCycle;	// 是否循环播放
+
+		mVideoView.setVideoQuality(ApplicationConfig.videoQuality[videoQuality]);  // 画质
+		mMediaPlayer.setPlaybackSpeed(videoSpeed);
+		dialogFragment.dismiss();
 	}
 
-	/**
-	 * 播放下一个视频
-	 */
-	public void playNextVideo() {
-		if (mVideoList != null && mVideoList.size() > 0) {
-			mCurVideoPosition++;
-			if (mCurVideoPosition < mVideoList.size()) {
-				// 播放下一个视频
-				mVideo = mVideoList.get(mCurVideoPosition);
-				mVideoView.setVideoPath(mVideo.url);
-				mTvVideoName.setText(mVideo.name);
-				mTvVideoDuration.setText(StringUtils
-						.generateTime(mVideo.duration));
-				handler.removeMessages(HIDECONTROLLER);
-			}
+	SettingDialogFragment dialogFragment;
+
+    /**
+     * 截取视频当前画面
+     * 获取当前时刻视频对应的帧
+     */
+    private void screenShots() {
+        Bitmap bitmap = mVideoView.getCurrentFrame();
+        LogUtils.e(bitmap.getWidth() + ": " + bitmap.getHeight());
+        String savePath = BitmapUtils.saveBitmapWithUniqueName(this, bitmap, ApplicationConfig.screenShotsDir);
+        if (!bitmap.isRecycled()) {
+            bitmap.recycle();
+        }
+        ToastUtils.showToast("截图成功！保存在:\n" + savePath);
+    }
+
+    /**
+     * 播放下一个视频
+     */
+    public void playNextVideo() {
+        if (mVideoList != null && mVideoList.size() > 0) {
+            mCurVideoPosition++;
+            if (mCurVideoPosition < mVideoList.size()) {
+                // 播放下一个视频
+                mVideo = mVideoList.get(mCurVideoPosition);
+                mVideoView.setVideoPath(mVideo.url);
+                mTvVideoName.setText(mVideo.name);
+                mTvVideoDuration.setText(StringUtils
+                        .generateTime(mVideo.duration));
+                handler.removeMessages(HIDECONTROLLER);
+            }
+        }
+    }
+
+    /**
+     * 播放上一个视频
+     */
+    public void playPreVideo() {
+        if (mVideoList != null && mVideoList.size() > 0) {
+            mCurVideoPosition--;
+            if (mCurVideoPosition >= 0) {
+                // 播放下一个视频
+                mVideo = mVideoList.get(mCurVideoPosition);
+                mVideoView.setVideoPath(mVideo.url);
+                mTvVideoName.setText(mVideo.name);
+                handler.removeMessages(HIDECONTROLLER);
+            }
+        }
+    }
+
+    private void changeVideoLayout() {
+		if (videoAspectratioId == 0) {	// 全屏
+			mImgVideoLayout.setImageResource(R.drawable.full_screen);
+			mLayout = VideoView.VIDEO_LAYOUT_SCALE;
+			videoAspectratioId = 1;
+			ToastUtils.showToast("全屏");
+		} else if (videoAspectratioId == 1) {  // 拉伸
+			mImgVideoLayout.setImageResource(R.drawable.stretch);
+			mLayout = VideoView.VIDEO_LAYOUT_STRETCH;
+			videoAspectratioId = 2;
+			ToastUtils.showToast("拉伸");
+		} else if (videoAspectratioId == 2) {	// 裁剪
+			mImgVideoLayout.setImageResource(R.drawable.cut2);
+			mLayout = VideoView.VIDEO_LAYOUT_ZOOM;
+			videoAspectratioId = 3;
+			ToastUtils.showToast("裁剪");
+		} else if (videoAspectratioId == 3){
+			mImgVideoLayout.setImageResource(R.drawable.scale);
+			mLayout = VideoView.VIDEO_LAYOUT_ORIGIN;
+			videoAspectratioId = 0;
+			ToastUtils.showToast("100%");
 		}
+
+		mVideoView.setVideoLayout(mLayout, videoAspectRatio);
 	}
 
-	/**
-	 * 播放上一个视频
-	 */
-	public void playPreVideo() {
-		if (mVideoList != null && mVideoList.size() > 0) {
-			mCurVideoPosition--;
-			if (mCurVideoPosition >= 0) {
-				// 播放下一个视频
-				mVideo = mVideoList.get(mCurVideoPosition);
-				mVideoView.setVideoPath(mVideo.url);
-				mTvVideoName.setText(mVideo.name);
-				handler.removeMessages(HIDECONTROLLER);
-			}
-		}
-	}
+    /**
+     * 屏幕锁定/解锁
+     */
+    private void lockOrUnlockScreen(boolean lock) {
+        if (lock) { // 锁屏
+            handler.removeMessages(HIDECONTROLLER);
+            hideController();
+            mIsLocking = true;
+            ToastUtils.showToast(getString(R.string.lock_screen));
+            mUnLockScreen.setVisibility(View.VISIBLE);
+        } else {  // 解锁
+            showController();
+            handler.sendEmptyMessageDelayed(HIDECONTROLLER, 5000);
+            mIsLocking = false;
+            ToastUtils.showToast(getString(R.string.unlock_screen));
+            mUnLockScreen.setVisibility(View.GONE);
+        }
+    }
 
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -520,66 +728,23 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 			// 开始/暂停播放
 			if (isChecked) {
 				mVideoView.pause();
+                LogUtils.e("暂停播放");
 			} else {
 				mVideoView.start();
+                LogUtils.e("开始播放");
 			}
-			// mIsPlaying = !mIsPlaying;
+            mIsPlaying = !mIsPlaying;
 			break;
-		case R.id.cb_lock_screen:
-			// 锁屏
-			lockOrUnlockScreen(isChecked);
-			break;
-		case R.id.cb_fullscreen:
-			// 全屏
-			if (mVideoView != null) {
-				if (mLayout == VideoView.VIDEO_LAYOUT_ZOOM) {
-					mLayout = VideoView.VIDEO_LAYOUT_ORIGIN;
-				} else {
-					mLayout++;
-				}
-				mVideoView.setVideoLayout(mLayout, 0);
-				showScaleToast(mLayout);
+		case R.id.cb_subtitle_setting:
+			if (isChecked) {
+				ToastUtils.showToast("关闭字幕");
+				LogUtils.e("字幕类型：");
+				mVideoView.setSubTrack(1);
+			} else {
+				ToastUtils.showToast("开启字幕");
 			}
 			break;
 		default:
-			break;
-		}
-	}
-
-	/**
-	 * 屏幕锁定/解锁
-	 */
-	private void lockOrUnlockScreen(boolean isChecked) {
-		if (isChecked) { // 锁屏
-			handler.removeMessages(HIDECONTROLLER);
-			hideController();
-			mIsLocking = true;
-			Toast.makeText(this, getString(R.string.lock_screen), Toast.LENGTH_SHORT).show();
-		} else {  // 解锁
-			showController();
-			handler.sendEmptyMessageDelayed(HIDECONTROLLER, 5000);
-			mIsLocking = false;
-			Toast.makeText(this, getString(R.string.unlock_screen), Toast.LENGTH_SHORT).show();
-		}
-	}
-	
-	public void showScaleToast(int id) {
-		switch (id) {
-		case 0:
-			Toast.makeText(VideoPlayerActivity.this, "拉伸", Toast.LENGTH_SHORT)
-					.show();
-			break;
-		case 1:
-			Toast.makeText(VideoPlayerActivity.this, "裁剪", Toast.LENGTH_SHORT)
-					.show();
-			break;
-		case 2:
-			Toast.makeText(VideoPlayerActivity.this, "100%", Toast.LENGTH_SHORT)
-					.show();
-			break;
-		case 3:
-			Toast.makeText(VideoPlayerActivity.this, "全屏", Toast.LENGTH_SHORT)
-					.show();
 			break;
 		}
 	}
@@ -597,14 +762,22 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 		return true;
 	}
 
+    /**
+     * 手势识别
+     */
 	class SingleGestureListener extends SimpleOnGestureListener {
 
 		@Override
 		public boolean onSingleTapConfirmed(MotionEvent e) {
-			if (mIsLocking) {
-				return true;
-			}
-			if (mIsShowController) {
+            if (mIsLocking) {
+                if (mUnLockScreen.getVisibility() == View.VISIBLE) {
+                    mUnLockScreen.setVisibility(View.GONE);
+                } else if (mUnLockScreen.getVisibility() == View.GONE) {
+                    mUnLockScreen.setVisibility(View.VISIBLE);
+                }
+                return true;
+            }
+            if (mIsShowController) {
 				hideController();
 				handler.removeMessages(HIDECONTROLLER);
 			} else {
@@ -755,4 +928,23 @@ public class VideoPlayerActivity extends Activity implements OnClickListener,
 		handler.removeMessages(HIDEVOLUME);
 		handler.sendEmptyMessageDelayed(HIDEVOLUME, 500);
 	}
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        if (mVideoView != null) {
+            mVideoView.setVideoLayout(mLayout, 0);
+        }
+        super.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        LogUtils.e("onSaveInstanceState调用");
+        LogUtils.e("seekbar的位置：" + mSbVideoProgress.getProgress());
+        long position = mVideoView.getCurrentPosition();
+        // 保存视频播放位置
+        outState.putLong("position", mSbVideoProgress.getProgress());
+        LogUtils.e("保存视频当前位置：" + position);
+    }
 }

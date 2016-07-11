@@ -1,10 +1,17 @@
 package com.sdust.xplayer.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.sdust.xplayer.R;
@@ -42,6 +49,14 @@ public class HomeActivity extends FragmentActivity implements ViewPager.OnPageCh
 	private FragmentAdapter mAdapter;
 	/** 菜单栏view的集合 */
 	private List<TextView> mMenusList;
+    /** 侧滑栏 */
+	private DrawerLayout mDrawer;
+    /** 播放器设置 */
+    private RelativeLayout mLayoutPlayerSetting;
+	/** 关于 */
+	private RelativeLayout mLayoutAppInfo;
+	/** 退出 */
+	private TextView mExit;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,19 +71,22 @@ public class HomeActivity extends FragmentActivity implements ViewPager.OnPageCh
 		mLocal = (TextView) findViewById(R.id.local);
 		mWeb = (TextView) findViewById(R.id.web);
 		mShortVideo = (TextView) findViewById(R.id.short_video);
-		mFile = (TextView) findViewById(R.id.file);
+		//mFile = (TextView) findViewById(R.id.file);
 		mViewPager = (ViewPager) findViewById(R.id.viewpager);
+		mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
 		mLocal.setOnClickListener(this);
 		mWeb.setOnClickListener(this);
 		mShortVideo.setOnClickListener(this);
-		mFile.setOnClickListener(this);
+//		mFile.setOnClickListener(this);
 		mViewPager.addOnPageChangeListener(this);
+		findViewById(R.id.layout_player).setOnClickListener(this);
+		findViewById(R.id.layout_info).setOnClickListener(this);
+		findViewById(R.id.exit_app).setOnClickListener(this);
 	}
 
 	private void initData() {
-		// 初始化数据
-		
+
 		// 设置viewpager最大缓存的页数
 		mViewPager.setOffscreenPageLimit(3);
 		
@@ -81,7 +99,7 @@ public class HomeActivity extends FragmentActivity implements ViewPager.OnPageCh
 		mFragmentList.add(localVideo);
 		mFragmentList.add(webVideo);
 		mFragmentList.add(shortVideo);
-		mFragmentList.add(fileExploer);
+		//mFragmentList.add(fileExploer);
 
 		mAdapter = new FragmentAdapter(getSupportFragmentManager(),
 				mFragmentList);
@@ -91,7 +109,7 @@ public class HomeActivity extends FragmentActivity implements ViewPager.OnPageCh
 		mMenusList.add(mLocal);
 		mMenusList.add(mWeb);
 		mMenusList.add(mShortVideo);
-		mMenusList.add(mFile);
+		//mMenusList.add(mFile);
 	}
 
 	@Override
@@ -120,11 +138,23 @@ public class HomeActivity extends FragmentActivity implements ViewPager.OnPageCh
 				changeTextColor(2);
 				mViewPager.setCurrentItem(2, true);
 				break;
-			case R.id.file:
-				changeTextColor(3);
-				mViewPager.setCurrentItem(3, true);
-				break;
-
+//			case R.id.file:
+//				changeTextColor(3);
+//				mViewPager.setCurrentItem(3, true);
+//				break;
+            case R.id.layout_player:
+                startActivity(new Intent(this, PlayerSettingActivity.class));
+				mDrawer.closeDrawers();
+                break;
+            case R.id.layout_info:
+                startActivity(new Intent(this, AppInfoActivity.class));
+				mDrawer.closeDrawers();
+                break;
+            case R.id.exit_app:
+                finish();
+                break;
+            default:
+                break;
 		}
 	}
 

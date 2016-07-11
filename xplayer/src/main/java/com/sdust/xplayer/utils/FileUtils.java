@@ -1,5 +1,8 @@
 package com.sdust.xplayer.utils;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.text.TextUtils;
 
 import org.w3c.dom.Text;
@@ -108,5 +111,15 @@ public class FileUtils {
             return deleteFile(new File(f));
         }
         return false;
+    }
+
+    /**
+     * 更新相册  --> FileUtils
+     * @param file 待扫描的文件
+     */
+    public static void refreshGallery(Context context, File file) {
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        intent.setData(Uri.fromFile(file));
+        context.sendBroadcast(intent);
     }
 }

@@ -217,21 +217,30 @@ public class FileUtils {
 		return false;
 	}
 
-	public static void deleteDir(File f) {
+	public static boolean  deleteDir(File f) {
 		if (f != null && f.exists() && f.isDirectory()) {
 			for (File file : f.listFiles()) {
-				if (file.isDirectory())
+				if (file.isDirectory()) {
 					deleteDir(file);
+				}
 				file.delete();
+				Log.e("delete file:" + file.getAbsolutePath());
 			}
 			f.delete();
+			Log.e("delete dir:" + f.getAbsolutePath());
 		}
+
+		return true;
 	}
 
-	public static void deleteDir(String f) {
+	public static boolean deleteDir(String f) {
 		if (f != null && f.length() > 0) {
-			deleteDir(new File(f));
+			if (deleteDir(new File(f))) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 
 	public static boolean deleteFile(String f) {
@@ -244,7 +253,6 @@ public class FileUtils {
 	/**
 	 * read file
 	 * 
-	 * @param filePath
 	 * @param charsetName
 	 *            The name of a supported {@link java.nio.charset.Charset
 	 *            </code>charset<code>}
